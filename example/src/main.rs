@@ -69,23 +69,38 @@ impl MainState {
     pub fn new(ctx: &mut Context) -> GameResult<Self> {
         let screen_size = Vector2::new(1280.0, 720.0);
 
-        // Set up everything needed for the UI
+        // Register all the component classes, this makes them available to be used in templates.
         let mut classes = ComponentClasses::new();
         classes.register::<markedly::class::ContainerClass>("container");
         classes.register::<markedly::class::ButtonClass>("button");
 
-        let ui_context = UiContext {
-            classes,
-            runtime: ScriptRuntime::new(),
-        };
+        // Set up the scripting runtime.
+        // TODO: Here you can make custom helper functions available to templates.
+        let runtime = ScriptRuntime::new();
+
+        // The context is a bundle of the systems needed for a UI to function.
+        let ui_context = UiContext { classes, runtime, };
+
+        // This UI will make use of input. If your UI will not use input, for example if your UI is
+        // an in-game screen, you don't need this.
         let ui_input = Input::new();
+
+        // Set up the UI cache.
+        // This will keep track of rendering data, as well as resources to be used by templates.
         let mut ui_cache = GgezCache::new();
         ui_cache.add_font("raleway", "/Raleway-Regular.ttf").map_err(emtg)?;
         ui_cache.add_font("cormorant", "/CormorantGaramond-Regular.ttf").map_err(emtg)?;
 
-        // Set up the UI itself
+        // Load in a style template.
+        // This defines some default styles and style classes to be used when displaying templates.
         let style = Style::from_reader(ctx.filesystem.open("/mark/_style.mark")?)?;
+
+        // Load in the root template.
+        // This template defines what the actual UI will look like, it contains components in the
+        // layout you want them to be in, and with the attributes you want them to have.
         let root_template = Template::from_reader(ctx.filesystem.open("/mark/ui.mark")?)?;
+
+        // Finally, actually set up the UI itself.
         let (ui, ui_root) = Ui::new(
             &root_template, None, style,
             screen_size,
@@ -102,7 +117,6 @@ impl MainState {
         })
     }
 }
-
 
 impl EventHandler for MainState {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {

@@ -1,5 +1,5 @@
 # Markedly
-A dynamic template based UI system for games.
+A dynamic template based UI system.
 
 ## License
 Licensed under either of
