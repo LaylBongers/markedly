@@ -1,0 +1,41 @@
+template = ${ soi ~ component* ~ eoi }
+
+// Components
+component = { indentation ~ identifier ~ style_class? ~ spacing* ~ (attributes)? ~ (spacing* ~ newline)+ }
+indentation = { spacing* }
+style_class = { "." ~ identifier }
+
+// Attributes
+attributes = !{ "{" ~ (key_value ~ ("," ~ key_value)* ~ ","?)? ~ "}" }
+key_value = { identifier ~ ":" ~ value ~ script_conditional? }
+value = { string | percentage | float | integer | tuple | default | script_value | script_statement }
+
+// Identifiers
+identifier_char = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "_" | "-" }
+identifier = { identifier_char+ }
+
+// Values
+tuple = { "(" ~ value ~ ("," ~ value)* ~ ")" }
+
+string = @{ "\"" ~ (escape | !("\"" | "\\") ~ any)* ~ "\"" }
+escape = @{ "\\" ~ ("\"" | "\\" ) }
+
+integer = @{ "-"? ~ number }
+float = @{ "-"? ~ number ~ "." ~ ('0'..'9'+)? }
+percentage = @{ "-"? ~ number ~ "%" }
+number = { "0" | ('1'..'9' ~ '0'..'9'*) }
+
+default = @{ "default" }
+
+// Script
+script_statement = @{ "@" ~ script }
+script_value = @{ "=" ~ script }
+script_conditional = @{ "?" ~ script }
+
+script = { "{" ~ (script_inner_braces | !("{" | "}") ~ any)* ~ "}" }
+script_inner_braces = { "{" ~ (script_inner_braces | !("{" | "}") ~ any)* ~ "}" }
+
+// Whitespace
+spacing = _{ " " | "\t" }
+newline = { "\r" | "\n" }
+whitespace = _{ spacing | newline }
