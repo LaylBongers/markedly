@@ -16,7 +16,7 @@ use markedly::scripting::{ScriptRuntime};
 use markedly::template::{Template, Style};
 use markedly::{Context as UiContext, Ui, Tree};
 
-use markedly_ggez::{GgezRenderer, GgezComponentCache, emtg};
+use markedly_ggez::{GgezRenderer, GgezCache, emtg};
 
 fn main() {
     // Set up the ggez context
@@ -27,7 +27,7 @@ fn main() {
         .. Default::default()
     };
     c.window_setup = WindowSetup {
-        title: "Space Game".into(),
+        title: "Markedly Example".into(),
         .. Default::default()
     };
     let ctx = &mut Context::load_from_conf("example", "markedly", c).unwrap();
@@ -61,8 +61,7 @@ struct MainState {
     ui: Ui,
 
     ui_input: Input,
-    ui_font: Font,
-    ui_cache: GgezComponentCache,
+    ui_cache: GgezCache,
     ui_root: Tree,
 }
 
@@ -80,8 +79,9 @@ impl MainState {
             runtime: ScriptRuntime::new(),
         };
         let ui_input = Input::new();
-        let ui_font = Font::new(ctx, "/Raleway-Regular.ttf", 12)?;
-        let ui_cache = GgezComponentCache::new();
+        let mut ui_cache = GgezCache::new();
+        ui_cache.add_font("raleway", Font::new(ctx, "/Raleway-Regular.ttf", 12)?);
+        ui_cache.add_font("cormorant", Font::new(ctx, "/CormorantGaramond-Regular.ttf", 20)?);
 
         // Set up the UI itself
         let style = Style::from_reader(ctx.filesystem.open("/mark/_style.mark")?)?;
@@ -97,7 +97,6 @@ impl MainState {
             ui,
 
             ui_input,
-            ui_font,
             ui_cache,
             ui_root,
         })
@@ -119,7 +118,7 @@ impl EventHandler for MainState {
 
         // Draw the UI
         {
-            let mut renderer = GgezRenderer::new(ctx, &mut self.ui_cache, &self.ui_font);
+            let mut renderer = GgezRenderer::new(ctx, &mut self.ui_cache);
             markedly::render::render(&mut renderer, &mut self.ui).map_err(emtg)?;
         }
 

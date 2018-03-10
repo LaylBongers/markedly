@@ -5,6 +5,8 @@ pub enum Error {
     Attribute { component: String, line: usize, field: String, inner: Box<Error> },
     Value { error: String, inner: Option<Box<Error>> },
     Script { error: String },
+    /// An error relating a resource.
+    Resource { resource: Option<String>, error: String },
     Generic { error: Box<RError> },
     Other { error: String },
 }

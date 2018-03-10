@@ -13,32 +13,46 @@ use markedly::render::{Renderer};
 use markedly::template::{Color};
 use markedly::{Error, ComponentId};
 
-pub struct GgezComponentCache {
+pub struct GgezCache {
     data: MetroHashMap<ComponentId, Canvas>,
+    fonts: MetroHashMap<String, Font>,
+
+    default_font: Option<String>,
 }
 
-impl GgezComponentCache {
+impl GgezCache {
     pub fn new() -> Self {
-        GgezComponentCache {
+        GgezCache {
             data: MetroHashMap::default(),
+            fonts: MetroHashMap::default(),
+
+            default_font: None,
         }
+    }
+
+    pub fn add_font<S: Into<String>>(&mut self, name: S, font: Font) {
+        let name = name.into();
+
+        if self.default_font.is_none() {
+            self.default_font = Some(name.clone());
+        }
+
+        self.fonts.insert(name, font);
     }
 }
 
 pub struct GgezRenderer<'a> {
     ctx: &'a mut Context,
-    cache: &'a mut GgezComponentCache,
-    font: &'a Font,
+    cache: &'a mut GgezCache,
     target_coordinates: Rect,
 }
 
 impl<'a> GgezRenderer<'a> {
-    pub fn new(ctx: &'a mut Context, cache: &'a mut GgezComponentCache, font: &'a Font) -> Self {
+    pub fn new(ctx: &'a mut Context, cache: &'a mut GgezCache) -> Self {
         let target_coordinates = graphics::get_screen_coordinates(ctx);
         GgezRenderer {
             ctx,
             cache,
-            font,
             target_coordinates,
         }
     }
@@ -129,11 +143,24 @@ impl<'a> Renderer for GgezRenderer<'a> {
 
     fn text(
         &mut self, id: ComponentId,
-        text: &str, position: Point2<f32>, size: Vector2<f32>, color: Color,
+        text: &String, font: Option<&String>,
+        position: Point2<f32>, size: Vector2<f32>, color: Color,
     ) -> Result<(), Error> {
         self.render_to_component(id)?;
 
-        let text = Text::new(self.ctx, text, self.font).map_err(egtm)?;
+        // Try to find the font, use the default, or error if we can't find it
+        let requested_font_name = font.or(self.cache.default_font.as_ref())
+            .ok_or(Error::Resource {
+                resource: None,
+                error: "No font defined and no default font given".into()
+            })?;
+        let font = self.cache.fonts.get(requested_font_name)
+            .ok_or_else(|| Error::Resource {
+                resource: Some(requested_font_name.clone()),
+                error: "Font is not in cache".into()
+            })?;
+
+        let text = Text::new(self.ctx, text, font).map_err(egtm)?;
 
         let x_offset = ((size.x - text.width() as f32) * 0.5).round();
         let y_offset = ((size.y - text.height() as f32) * 0.5).round();

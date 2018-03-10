@@ -8,13 +8,16 @@ container {
     }
         button {
             size: (300.0, 20.0),
+            color: (255, 255, 255),
 
-            text: "Markedly - An Elegant UI Engine",
+            text: "Markedly - A Template Based UI Engine",
             text-color: (255, 150, 78),
+            text-font: "cormorant",
         }
         button {
             position: (0.0, 20.0),
             size: (300.0, 20.0),
+            color: (255, 255, 255),
 
             text: "This is a kitchen sink example of Markedly",
             text-color: (41, 43, 44),

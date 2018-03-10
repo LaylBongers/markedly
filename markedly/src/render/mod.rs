@@ -27,9 +27,11 @@ pub trait Renderer {
     ) -> Result<(), Error>;
 
     /// Renders text centered in an area to the component's cache.
+    /// Font is a string identifier that should be resolved by the renderer's font cache.
     fn text(
         &mut self, id: ComponentId,
-        text: &str, position: Point2<f32>, size: Vector2<f32>, color: Color,
+        text: &String, font: Option<&String>,
+        position: Point2<f32>, size: Vector2<f32>, color: Color,
     ) -> Result<(), Error>;
 
     /// Renders vertices to the component's cache.
