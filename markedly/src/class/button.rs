@@ -39,7 +39,7 @@ impl ComponentClass for ButtonClass {
 
         if let Some(ref text) = self.attributes.text {
             renderer.text(
-                id, &text, self.attributes.text_font.as_ref(),
+                id, &text, self.attributes.text_font.as_ref(), self.attributes.text_size,
                 Point2::new(0.0, 0.0), attributes.size, self.attributes.text_color,
             )?;
         }
@@ -72,6 +72,7 @@ struct ButtonAttributes {
     text: Option<String>,
     text_color: Color,
     text_font: Option<String>,
+    text_size: Option<i32>,
     on_pressed: Option<EventHook>,
 }
 
@@ -83,6 +84,7 @@ impl ButtonAttributes {
                 "text-color", |v| v.as_color(runtime), Color::new_u8(0, 0, 0, 255)
             )?,
             text_font: attributes.attribute_optional("text-font", |v| v.as_string(runtime))?,
+            text_size: attributes.attribute_optional("text-size", |v| v.as_integer(runtime))?,
             on_pressed: attributes.attribute_optional("on-pressed", |v| v.as_event_hook(runtime))?,
         })
     }

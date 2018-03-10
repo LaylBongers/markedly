@@ -30,7 +30,7 @@ pub trait Renderer {
     /// Font is a string identifier that should be resolved by the renderer's font cache.
     fn text(
         &mut self, id: ComponentId,
-        text: &String, font: Option<&String>,
+        text: &String, text_font: Option<&String>, text_size: Option<i32>,
         position: Point2<f32>, size: Vector2<f32>, color: Color,
     ) -> Result<(), Error>;
 

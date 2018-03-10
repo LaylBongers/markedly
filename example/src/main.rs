@@ -8,7 +8,7 @@ use std::path;
 use ggez::{Context, GameResult, GameError};
 use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
-use ggez::graphics::{self, Font, Point2, Vector2};
+use ggez::graphics::{self, Point2, Vector2};
 
 use markedly::class::{ComponentClasses};
 use markedly::input::{Input};
@@ -80,8 +80,8 @@ impl MainState {
         };
         let ui_input = Input::new();
         let mut ui_cache = GgezCache::new();
-        ui_cache.add_font("raleway", Font::new(ctx, "/Raleway-Regular.ttf", 12)?);
-        ui_cache.add_font("cormorant", Font::new(ctx, "/CormorantGaramond-Regular.ttf", 20)?);
+        ui_cache.add_font("raleway", "/Raleway-Regular.ttf").map_err(emtg)?;
+        ui_cache.add_font("cormorant", "/CormorantGaramond-Regular.ttf").map_err(emtg)?;
 
         // Set up the UI itself
         let style = Style::from_reader(ctx.filesystem.open("/mark/_style.mark")?)?;

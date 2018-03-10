@@ -3,21 +3,30 @@ extern crate nalgebra;
 extern crate markedly;
 extern crate metrohash;
 
+use std::path::{PathBuf};
+
+use nalgebra::{Point2, Vector2};
+use metrohash::{MetroHashMap};
 use ggez::conf::{NumSamples};
 use ggez::graphics::{self, DrawMode, Rect, Font, Text, Canvas, Matrix4, Mesh};
 use ggez::{Context, GameError};
-use nalgebra::{Point2, Vector2};
-use metrohash::{MetroHashMap};
 
 use markedly::render::{Renderer};
 use markedly::template::{Color};
 use markedly::{Error, ComponentId};
 
+struct FontCache {
+    path: PathBuf,
+    sizes: MetroHashMap<u32, Font>,
+}
+
+/// A persistent resource cache for the ggez markedly renderer.
 pub struct GgezCache {
     data: MetroHashMap<ComponentId, Canvas>,
-    fonts: MetroHashMap<String, Font>,
+    fonts: MetroHashMap<String, FontCache>,
 
     default_font: Option<String>,
+    default_text_size: u32,
 }
 
 impl GgezCache {
@@ -27,20 +36,38 @@ impl GgezCache {
             fonts: MetroHashMap::default(),
 
             default_font: None,
+            default_text_size: 14,
         }
     }
 
-    pub fn add_font<S: Into<String>>(&mut self, name: S, font: Font) {
+    /// Adds a font to the cache by its path.
+    /// This will not actually load the font until it's used with a specific size.
+    pub fn add_font<S: Into<String>, P: Into<PathBuf>>(
+        &mut self, name: S, location: P
+    ) -> Result<(), Error> {
         let name = name.into();
 
         if self.default_font.is_none() {
             self.default_font = Some(name.clone());
         }
 
-        self.fonts.insert(name, font);
+        if self.fonts.contains_key(&name) {
+            return Err(Error::Resource {
+                resource: Some(name),
+                error: "Font already added to cache".into(),
+            })
+        }
+
+        self.fonts.insert(name, FontCache {
+            path: location.into(),
+            sizes: MetroHashMap::default(),
+        });
+
+        Ok(())
     }
 }
 
+/// A markedly renderer for ggez, intended to be constructed every frame on-demand.
 pub struct GgezRenderer<'a> {
     ctx: &'a mut Context,
     cache: &'a mut GgezCache,
@@ -143,22 +170,30 @@ impl<'a> Renderer for GgezRenderer<'a> {
 
     fn text(
         &mut self, id: ComponentId,
-        text: &String, font: Option<&String>,
+        text: &String, text_font: Option<&String>, text_size: Option<i32>,
         position: Point2<f32>, size: Vector2<f32>, color: Color,
     ) -> Result<(), Error> {
         self.render_to_component(id)?;
 
-        // Try to find the font, use the default, or error if we can't find it
-        let requested_font_name = font.or(self.cache.default_font.as_ref())
+        // Try to find the font cache, use the default, or error if we can't find it
+        let requested_font_name = text_font.or(self.cache.default_font.as_ref())
             .ok_or(Error::Resource {
                 resource: None,
-                error: "No font defined and no default font given".into()
+                error: "Could not fall back to default font, no fonts are loaded".into()
             })?;
-        let font = self.cache.fonts.get(requested_font_name)
+        let font_cache = self.cache.fonts.get_mut(requested_font_name)
             .ok_or_else(|| Error::Resource {
                 resource: Some(requested_font_name.clone()),
                 error: "Font is not in cache".into()
             })?;
+
+        // Find the cached size for this font, or generate a cache for that
+        let text_size = text_size.map(|v| v as u32).unwrap_or(self.cache.default_text_size);
+        if !font_cache.sizes.contains_key(&text_size) {
+            let font = Font::new(self.ctx, &font_cache.path, text_size).map_err(egtm)?;
+            font_cache.sizes.insert(text_size, font);
+        }
+        let font = font_cache.sizes.get(&text_size).unwrap();
 
         let text = Text::new(self.ctx, text, font).map_err(egtm)?;
 
