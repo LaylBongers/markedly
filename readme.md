@@ -1,5 +1,7 @@
 # Markedly
 A dynamic template based UI system.
+- See the example project for a basic example on how to use markedly with ggez.
+- See the docs directory for a reference of components and their attributes.
 
 ## License
 Licensed under either of
