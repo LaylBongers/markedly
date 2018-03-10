@@ -22,7 +22,7 @@ pub struct Ui {
 impl Ui {
     /// Creates a new UI from a root template.
     pub fn new(
-        template: &Template, model: Option<ScriptTable>,
+        template: &Template, model: Option<&ScriptTable>,
         style: Style, target_size: Vector2<f32>, context: &Context,
     ) -> Result<(Self, Tree), Error> {
         let mut ui = Ui {
@@ -37,7 +37,8 @@ impl Ui {
         };
 
         // Prepare the scripting engine with the model data
-        let model = model.unwrap_or(ScriptTable::new());
+        let default_table = ScriptTable::new();
+        let model = model.unwrap_or(&default_table);
         context.runtime.set_model(&model)?;
 
         // Create the root component from the template
@@ -71,7 +72,7 @@ impl Ui {
     /// style class.
     pub fn insert_template(
         &mut self,
-        template: &Template, model: Option<ScriptTable>,
+        template: &Template, model: Option<&ScriptTable>,
         style_class: &str,
         context: &Context,
     ) -> Result<Tree, Error> {
@@ -91,7 +92,8 @@ impl Ui {
         let size = self.get(parent_id).unwrap().attributes.size;
 
         // Prepare the scripting engine with the model data
-        let model = model.unwrap_or(ScriptTable::new());
+        let default_table = ScriptTable::new();
+        let model = model.unwrap_or(&default_table);
         context.runtime.set_model(&model)?;
 
         // Recursively add the template

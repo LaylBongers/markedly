@@ -147,7 +147,10 @@ impl<'a> Renderer for GgezRenderer<'a> {
 
         let source_canvas = self.cache.data.get(&source_id).unwrap();
         graphics::set_color(self.ctx, (255, 255, 255, 255).into()).map_err(egtm)?;
-        graphics::draw(self.ctx, source_canvas, position, 0.0).map_err(egtm)?;
+        graphics::draw(self.ctx, source_canvas, Point2::new(
+            position.x.round(),
+            position.y.round(),
+        ), 0.0).map_err(egtm)?;
 
         Ok(())
     }
@@ -197,12 +200,12 @@ impl<'a> Renderer for GgezRenderer<'a> {
 
         let text = Text::new(self.ctx, text, font).map_err(egtm)?;
 
-        let x_offset = ((size.x - text.width() as f32) * 0.5).round();
-        let y_offset = ((size.y - text.height() as f32) * 0.5).round();
+        let x_offset = (size.x - text.width() as f32) * 0.5;
+        let y_offset = (size.y - text.height() as f32) * 0.5;
         graphics::set_color(self.ctx, color_convert(color)).map_err(egtm)?;
         graphics::draw(self.ctx, &text, Point2::new(
-            position.x + x_offset,
-            position.y + y_offset,
+            (position.x + x_offset).round(),
+            (position.y + y_offset).round(),
         ), 0.0).map_err(egtm)?;
 
         Ok(())

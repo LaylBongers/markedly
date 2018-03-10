@@ -4,22 +4,60 @@ container {
     container {
         docking: ("middle", "middle"),
         color: (255, 255, 255),
-        size: (300.0, 40.0),
+        size: (400.0, 200.0),
         border-radius: 3.0,
     }
         button {
-            size: (300.0, 20.0),
+            docking: ("middle", "start"),
+            position: (0.0, 6.0),
+            size: (388.0, 20.0),
 
             text: "Markedly - A Dynamic Template Based UI Engine",
             text-color: (255, 150, 78),
             text-font: "cormorant",
             text-size: 20,
+
+            color: (255, 255, 255),
         }
         button {
-            position: (0.0, 20.0),
-            size: (300.0, 20.0),
+            docking: ("middle", "start"),
+            position: (0.0, 32.0),
+            size: (388.0, 100.0),
 
             text: "This is a kitchen sink example of Markedly",
             text-color: (41, 43, 44),
             text-size: 14,
+
+            color: (255, 255, 255),
+        }
+        button {
+            docking: ("middle", "end"),
+            position: (-98.5, -6.0),
+            size: (191.0, 30.0),
+            border-radius: 3.0,
+
+            text: "Say Hello",
+            text-color: (41, 43, 44),
+            text-size: 14,
+
+            color: (240, 240, 240),
+            color-hovering: (220, 220, 220),
+
+            on-pressed: "hello-pressed",
+        }
+        button {
+            docking: ("middle", "end"),
+            position: (98.5, -6.0),
+            size: (191.0, 30.0),
+            border-radius: 3.0,
+
+            text: "Say Goodbye" ?{ not model.are_you_sure },
+            text: "Are You Sure? :'(" ?{ model.are_you_sure },
+            text-color: (41, 43, 44),
+            text-size: 14,
+
+            color: (240, 240, 240),
+            color-hovering: (220, 220, 220),
+
+            on-pressed: "goodbye-pressed",
         }

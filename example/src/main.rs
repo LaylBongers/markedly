@@ -12,7 +12,7 @@ use ggez::graphics::{self, Point2, Vector2};
 
 use markedly::class::{ComponentClasses};
 use markedly::input::{Input};
-use markedly::scripting::{ScriptRuntime};
+use markedly::scripting::{ScriptRuntime, ScriptTable};
 use markedly::template::{Template, Style};
 use markedly::{Context as UiContext, Ui, Tree};
 
@@ -57,12 +57,15 @@ fn main() {
 
 
 struct MainState {
-    _ui_context: UiContext,
+    ui_context: UiContext,
     ui: Ui,
 
     ui_input: Input,
     ui_cache: GgezCache,
     ui_root: Tree,
+
+    model: ScriptTable,
+    are_you_sure: bool,
 }
 
 impl MainState {
@@ -100,27 +103,50 @@ impl MainState {
         // layout you want them to be in, and with the attributes you want them to have.
         let root_template = Template::from_reader(ctx.filesystem.open("/mark/ui.mark")?)?;
 
+        // Optionally we can provide a model with data to be used by the template.
+        let mut model = ScriptTable::new();
+        model.set("are_you_sure", false);
+
         // Finally, actually set up the UI itself.
         let (ui, ui_root) = Ui::new(
-            &root_template, None, style,
+            &root_template, Some(&model), style,
             screen_size,
             &ui_context,
         ).map_err(emtg)?;
 
         Ok(MainState {
-            _ui_context: ui_context,
+            ui_context,
             ui,
 
             ui_input,
             ui_cache,
             ui_root,
+
+            model,
+            are_you_sure: false,
         })
     }
 }
 
 impl EventHandler for MainState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-        while let Some(_event) = self.ui_root.event_sink().next() {
+    fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
+        while let Some(event) = self.ui_root.event_sink().next() {
+            match event.as_str() {
+                "hello-pressed" => println!("Hello From UI!"),
+                "goodbye-pressed" => {
+                    if self.are_you_sure {
+                        ctx.quit()?;
+                    } else {
+                        self.are_you_sure = true;
+
+                        // We can change the model at any point and update the UI.
+                        self.model.set("are_you_sure", true);
+                        self.ui.update_model(&self.ui_root, &self.model, &self.ui_context)
+                            .map_err(emtg)?;
+                    }
+                },
+                _ => {},
+            }
         }
 
         Ok(())
