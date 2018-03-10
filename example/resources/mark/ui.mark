@@ -1,0 +1,21 @@
+container {
+    color: (41, 46, 51, 1.0),
+}
+    container {
+        docking: ("middle", "middle"),
+        color: (255, 255, 255),
+        size: (300.0, 40.0),
+    }
+        button {
+            size: (300.0, 20.0),
+
+            text: "Markedly - An Elegant UI Engine",
+            text-color: (255, 150, 78),
+        }
+        button {
+            position: (0.0, 20.0),
+            size: (300.0, 20.0),
+
+            text: "This is a kitchen sink example of Markedly",
+            text-color: (41, 43, 44),
+        }

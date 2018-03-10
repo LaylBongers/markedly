@@ -5,14 +5,14 @@ use nalgebra::{Point2, Vector2};
 use {Ui, ComponentId};
 
 /// Handles user input, raising events on components and storing current input information.
-pub struct UiInput {
+pub struct Input {
     hovering_over: Option<ComponentId>,
 }
 
-impl UiInput {
+impl Input {
     /// Creates a new UI input handler.
     pub fn new() -> Self {
-        UiInput {
+        Input {
             hovering_over: None,
         }
     }

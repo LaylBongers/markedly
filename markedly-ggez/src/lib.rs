@@ -133,13 +133,11 @@ impl<'a> Renderer for GgezRenderer<'a> {
     ) -> Result<(), Error> {
         self.render_to_component(id)?;
 
-        graphics::set_color(self.ctx, color_convert(color)).map_err(egtm)?;
-
         let text = Text::new(self.ctx, text, self.font).map_err(egtm)?;
 
         let x_offset = ((size.x - text.width() as f32) * 0.5).round();
         let y_offset = ((size.y - text.height() as f32) * 0.5).round();
-        graphics::set_color(self.ctx, (0, 0, 0, 200).into()).map_err(egtm)?;
+        graphics::set_color(self.ctx, color_convert(color)).map_err(egtm)?;
         graphics::draw(self.ctx, &text, Point2::new(
             position.x + x_offset,
             position.y + y_offset,
@@ -173,6 +171,12 @@ fn color_convert(color: Color) -> ::ggez::graphics::Color {
     ::ggez::graphics::Color::new(color.red, color.green, color.blue, color.alpha)
 }
 
-fn egtm(e: GameError) -> Error {
+/// Converts a ggez error to a markedly error.
+pub fn egtm(e: GameError) -> Error {
     Error::Generic { error: Box::new(e) }
+}
+
+/// Converts a markedly error to a ggez error.
+pub fn emtg(e: Error) -> GameError {
+    GameError::UnknownError(format!("{:#?}", e))
 }

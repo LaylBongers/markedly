@@ -1,0 +1,9 @@
+[package]
+name = "example"
+version = "0.1.0"
+authors = ["Layl <LaylConway@users.noreply.github.com>"]
+
+[dependencies]
+ggez = "0.4"
+markedly = { path = "../markedly" }
+markedly-ggez = { path = "../markedly-ggez" }

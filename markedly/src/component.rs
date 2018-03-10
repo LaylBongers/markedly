@@ -63,6 +63,9 @@ impl Component {
         let x = match self.attributes.docking.0 {
             Docking::Start =>
                 self.attributes.position.x,
+            Docking::Middle =>
+                self.attributes.position.x +
+                    (parent_size.x - self.attributes.size.x)*0.5,
             Docking::End =>
                 self.attributes.position.x +
                     parent_size.x - self.attributes.size.x,
@@ -70,6 +73,9 @@ impl Component {
         let y = match self.attributes.docking.1 {
             Docking::Start =>
                 self.attributes.position.y,
+            Docking::Middle =>
+                self.attributes.position.y +
+                    (parent_size.y - self.attributes.size.y)*0.5,
             Docking::End =>
                 self.attributes.position.y +
                     parent_size.y - self.attributes.size.y,
@@ -106,7 +112,7 @@ impl ComponentAttributes {
 
 #[derive(Copy, Clone)]
 pub enum Docking {
-    Start, End,
+    Start, Middle, End,
 }
 
 impl Docking {
@@ -130,6 +136,7 @@ impl Docking {
     ) -> Result<Self, Error> {
         match value.as_string(runtime)?.as_str() {
             "start" => Ok(Docking::Start),
+            "middle" => Ok(Docking::Middle),
             "end" => Ok(Docking::End),
             _ => Err("Values must be either \"start\" or \"end\"".into())
         }
