@@ -2,33 +2,31 @@ container {
     color: (41, 46, 51, 1.0),
 }
     container {
+        position: (0.0, 0.0),
         docking: ("middle", "middle"),
         color: (255, 255, 255),
-        size: (400.0, 200.0),
+        size: (412.0, 200.0),
+        padding: 6.0,
         border-radius: 3.0,
     }
         button {
-            docking: ("middle", "start"),
-            position: (0.0, 6.0),
-            size: (388.0, 20.0),
+            size: (400.0, 20.0),
 
             text: "Markedly - A Dynamic Template Based UI Engine",
             text-color: (255, 150, 78),
             text-font: "cormorant",
-            text-size: 20,
+            text-size: 18,
 
-            color: (255, 255, 255),
+            color: (100, 255, 255),
         }
         button {
-            docking: ("middle", "start"),
-            position: (0.0, 32.0),
-            size: (388.0, 100.0),
+            size: (400.0, 100.0),
 
             text: "This is a kitchen sink example of Markedly",
             text-color: (41, 43, 44),
             text-size: 14,
 
-            color: (255, 255, 255),
+            color: (255, 100, 255),
         }
         button {
             docking: ("middle", "end"),

@@ -58,36 +58,38 @@ impl Component {
     }
 
     pub(crate) fn compute_position(
-        &self, parent_size: Vector2<f32>
+        &self, parent_size: Vector2<f32>, parent_flow: &mut ComponentFlow
     ) -> Point2<f32> {
-        let x = match self.attributes.docking.0 {
-            Docking::Start =>
-                self.attributes.position.x,
-            Docking::Middle =>
-                self.attributes.position.x +
-                    (parent_size.x - self.attributes.size.x)*0.5,
-            Docking::End =>
-                self.attributes.position.x +
-                    parent_size.x - self.attributes.size.x,
-        };
-        let y = match self.attributes.docking.1 {
-            Docking::Start =>
-                self.attributes.position.y,
-            Docking::Middle =>
-                self.attributes.position.y +
-                    (parent_size.y - self.attributes.size.y)*0.5,
-            Docking::End =>
-                self.attributes.position.y +
-                    parent_size.y - self.attributes.size.y,
-        };
+        if let Some(position) = self.attributes.position {
+            // If we have a position, we need to use that
+            let x = match self.attributes.docking.0 {
+                Docking::Start =>
+                    position.x,
+                Docking::Middle =>
+                    position.x + (parent_size.x - self.attributes.size.x)*0.5,
+                Docking::End =>
+                    position.x + parent_size.x - self.attributes.size.x,
+            };
+            let y = match self.attributes.docking.1 {
+                Docking::Start =>
+                    position.y,
+                Docking::Middle =>
+                    position.y + (parent_size.y - self.attributes.size.y)*0.5,
+                Docking::End =>
+                    position.y + parent_size.y - self.attributes.size.y,
+            };
 
-        Point2::new(x, y)
+            Point2::new(x, y)
+        } else {
+            // If we don't have a position, we need to automatically calculate it
+            parent_flow.position(self.attributes.size)
+        }
     }
 }
 
 /// Core attributes all components share.
 pub struct ComponentAttributes {
-    pub position: Point2<f32>,
+    pub position: Option<Point2<f32>>,
     pub size: Vector2<f32>,
     pub docking: (Docking, Docking),
 }
@@ -97,14 +99,14 @@ impl ComponentAttributes {
         parent_size: Vector2<f32>, attributes: &Attributes, runtime: &ScriptRuntime
     ) -> Result<Self, Error> {
         Ok(ComponentAttributes {
-            position: attributes.attribute(
-                "position", |v| v.as_point(parent_size, runtime), Point2::new(0.0, 0.0)
+            position: attributes.attribute_optional(
+                "position", |v| v.as_point(parent_size, runtime),
             )?,
             size: attributes.attribute(
-                "size", |v| v.as_vector(parent_size, runtime), parent_size
+                "size", |v| v.as_vector(parent_size, runtime), parent_size,
             )?,
             docking: attributes.attribute(
-                "docking", |v| Docking::from_value(v, runtime), (Docking::Start, Docking::Start)
+                "docking", |v| Docking::from_value(v, runtime), (Docking::Start, Docking::Start),
             )?,
         })
     }
@@ -140,5 +142,34 @@ impl Docking {
             "end" => Ok(Docking::End),
             _ => Err("Values must be either \"start\" or \"end\"".into())
         }
+    }
+}
+
+pub struct ComponentFlow {
+    limits: Vector2<f32>,
+    pointer: Point2<f32>,
+    next_line: f32,
+}
+
+impl ComponentFlow {
+    pub fn new(limits: Vector2<f32>) -> Self {
+        ComponentFlow {
+            limits,
+            pointer: Point2::new(0.0, 0.0),
+            next_line: 0.0,
+        }
+    }
+
+    pub fn position(&mut self, size: Vector2<f32>) -> Point2<f32> {
+        let position = if self.pointer.x + size.x <= self.limits.x {
+            self.pointer
+        } else {
+            Point2::new(0.0, self.next_line)
+        };
+
+        self.pointer = position + Vector2::new(size.x, 0.0);
+        self.next_line = (position.y + size.y).max(self.next_line);
+
+        position
     }
 }

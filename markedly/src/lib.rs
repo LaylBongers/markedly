@@ -20,9 +20,8 @@ mod error;
 mod events;
 mod ui;
 
-use component::{Component};
+use component::{Component, ComponentAttributes, ComponentFlow};
 
-pub use component::{ComponentAttributes};
 pub use error::{Error};
 pub use events::{EventSink};
 pub use ui::{Ui, Context, ComponentId, Tree};

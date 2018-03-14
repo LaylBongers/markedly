@@ -2,7 +2,7 @@
 
 use nalgebra::{Point2, Vector2};
 
-use {Ui, ComponentId};
+use {Ui, ComponentId, ComponentFlow};
 
 /// Handles user input, raising events on components and storing current input information.
 pub struct Input {
@@ -26,8 +26,9 @@ impl Input {
     pub fn handle_cursor_moved(
         &mut self, position: Point2<f32>, ui: &mut Ui,
     ) {
+        let mut flow = ComponentFlow::new(ui.target_size());
         let new_hovering = find_at_position(
-            position, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0),
+            position, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0), &mut flow,
         );
 
         if let Some(new_hovering) = new_hovering {
@@ -61,8 +62,9 @@ impl Input {
     pub fn handle_drag_ended(
         &mut self, position: Point2<f32>, ui: &mut Ui,
     ) {
+        let mut flow = ComponentFlow::new(ui.target_size());
         if let Some(component_id) = find_at_position(
-            position, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0),
+            position, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0), &mut flow,
         ) {
             let component = ui.get_mut(component_id).unwrap();
             component.class.pressed_event(&mut component.event_sink);
@@ -73,10 +75,11 @@ impl Input {
 fn find_at_position(
     position: Point2<f32>, ui: &Ui, id: ComponentId,
     computed_parent_position: Point2<f32>, parent_size: Vector2<f32>,
+    parent_flow: &mut ComponentFlow,
 ) -> Option<ComponentId> {
     let component = ui.get(id).unwrap();
     let computed_position = computed_parent_position +
-        component.compute_position(parent_size).coords;
+        component.compute_position(parent_size, parent_flow).coords;
 
     // If the position isn't over us, it also won't be over any children, so just return none
     if position.x < computed_position.x ||
@@ -97,9 +100,10 @@ fn find_at_position(
     // Go through all children, if any of them find a hit, replace the ID we found, we want to find
     // the last one that matches because it's the one rendered on top. The function will
     // recursively find the deepest matching child like this.
+    let mut flow = ComponentFlow::new(component.attributes.size);
     for child_id in &component.children {
         if let Some(id) = find_at_position(
-            position, ui, *child_id, computed_position, component.attributes.size
+            position, ui, *child_id, computed_position, component.attributes.size, &mut flow,
         ) {
             found_id = Some(id);
         }

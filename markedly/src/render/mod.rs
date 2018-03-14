@@ -2,7 +2,7 @@
 
 use nalgebra::{Point2, Vector2};
 use template::{Color};
-use {ComponentId, Ui, Error};
+use {ComponentId, Ui, Error, ComponentFlow};
 
 /// A renderer backend, implements how individual rendering operations are done.
 pub trait Renderer {
@@ -60,7 +60,7 @@ pub fn render<R: Renderer>(
 }
 
 fn update_component_cache<R: Renderer>(
-    renderer: &mut R, ui: &Ui, component_id: ComponentId
+    renderer: &mut R, ui: &Ui, component_id: ComponentId,
 ) -> Result<bool, Error> {
     let component = ui.get(component_id).unwrap();
 
@@ -84,9 +84,12 @@ fn update_component_cache<R: Renderer>(
         component.class.render(component_id, &component.attributes, renderer)?;
 
         // Render all children caches in sequence to this component
+        let mut flow = ComponentFlow::new(component.attributes.size);
         for child_id in &component.children {
             let child = ui.get(*child_id).unwrap();
-            let computed_position = child.compute_position(component.attributes.size);
+            let computed_position = child.compute_position(
+                component.attributes.size, &mut flow,
+            );
             renderer.render_cache(component_id, *child_id, computed_position)?;
         }
 

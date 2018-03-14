@@ -2,7 +2,7 @@
 This is a full list of built-in components and their attributes.
 
 ## `button`
-- Has `Background` attribute set
+- Has Background attribute set
 - `text` - string - The text that should be shown.
 - `text-color` - color - The color of the text.
 - `text-font` - string - The font of the text.
@@ -10,12 +10,12 @@ This is a full list of built-in components and their attributes.
 - `on-pressed` - event - The event called when clicked.
 
 ## `container`
-- Has `Background` attribute set
+- Has Background attribute set
 
 # Shared Attribute Sets
 These are attribute sets shared between multiple components.
 
-## `Background`
+## Background
 - `color` - Color - The background color.
 - `color-hovering` - color - The background color shown while hovering over if
     applicable.
