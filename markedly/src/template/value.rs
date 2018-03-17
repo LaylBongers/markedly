@@ -1,4 +1,4 @@
-use nalgebra::{Point2, Vector2};
+use nalgebra::{Vector2, Point2};
 use scripting::{ScriptRuntime};
 use {Error};
 
@@ -52,19 +52,6 @@ impl TemplateValue {
         }
     }
 
-    /// Gets the floating point content of this value, calculates a percentage floating point
-    /// value, or returns an error.
-    pub fn as_float_or_percentage(
-        &self, percent_100: f32, runtime: &ScriptRuntime
-    ) -> Result<f32, Error> {
-        match *self {
-            TemplateValue::Float(value) => Ok(value),
-            TemplateValue::Percentage(value) => Ok((value as f32 / 100.0) * percent_100),
-            TemplateValue::ScriptValue(ref script) => runtime.eval_float(script),
-            _ => Err("Value is not a float or percentage".into()),
-        }
-    }
-
     pub fn as_vec(&self) -> Result<&Vec<TemplateValue>, Error> {
         if let TemplateValue::Tuple(ref values) = *self {
             Ok(values)
@@ -73,26 +60,32 @@ impl TemplateValue {
         }
     }
 
-    /// Gets the point content of this value, or returns an error.
-    pub fn as_point(
-        &self, percent_100: Vector2<f32>, runtime: &ScriptRuntime
-    ) -> Result<Point2<f32>, Error> {
-        self.as_vector(percent_100, runtime)
-            .map(|v| Point2::from_coordinates(v))
+    /// Gets the Size content of this value, which can be either an exact floating point value, or
+    /// a percentage relative to the parent.
+    pub fn as_coordinate(
+        &self, runtime: &ScriptRuntime
+    ) -> Result<Coordinate, Error> {
+        match *self {
+            TemplateValue::Float(value) => Ok(Coordinate::Exact(value)),
+            TemplateValue::Percentage(value) =>
+                Ok(Coordinate::RelativeToParent(value as f32 / 100.0)),
+            TemplateValue::ScriptValue(ref script) =>
+                Ok(Coordinate::Exact(runtime.eval_float(script)?)),
+            _ => Err("Value is not a float or percentage".into()),
+        }
     }
 
-    /// Gets the vector content of this value, or returns an error.
-    pub fn as_vector(
-        &self, percent_100: Vector2<f32>, runtime: &ScriptRuntime
-    ) -> Result<Vector2<f32>, Error> {
+    pub fn as_coordinates(
+        &self, runtime: &ScriptRuntime
+    ) -> Result<Coordinates, Error> {
         if let TemplateValue::Tuple(ref values) = *self {
             if values.len() == 2 {
-                let x = values[0].as_float_or_percentage(percent_100.x, runtime)
+                let x = values[0].as_coordinate(runtime)
                     .map_err(|e| Error::new_value("Value 1", e))?;
-                let y = values[1].as_float_or_percentage(percent_100.y, runtime)
+                let y = values[1].as_coordinate(runtime)
                     .map_err(|e| Error::new_value("Value 2", e))?;
 
-                Ok(Vector2::new(x, y))
+                Ok(Coordinates::new(x, y))
             } else {
                 Err("Tuple is incorrect size".into())
             }
@@ -169,4 +162,58 @@ pub type Color = ::palette::Srgba;
 pub enum EventHook {
     Direct(String),
     Script(String),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Coordinate {
+    Exact(f32),
+    RelativeToParent(f32),
+}
+
+impl Coordinate {
+    pub fn to_float(self, parent_container: f32) -> f32 {
+        match self {
+            Coordinate::Exact(value) => value,
+            Coordinate::RelativeToParent(value) => parent_container * value,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Coordinates {
+    pub x: Coordinate,
+    pub y: Coordinate,
+}
+
+impl Coordinates {
+    pub fn new(x: Coordinate, y: Coordinate) -> Self {
+        Coordinates {
+            x, y,
+        }
+    }
+
+    pub fn from_vector(value: Vector2<f32>) -> Self {
+        Coordinates {
+            x: Coordinate::Exact(value.x),
+            y: Coordinate::Exact(value.y),
+        }
+    }
+
+    pub fn from_point(value: Point2<f32>) -> Self {
+        Coordinates {
+            x: Coordinate::Exact(value.x),
+            y: Coordinate::Exact(value.y),
+        }
+    }
+
+    pub fn to_vector(&self, parent_container: Vector2<f32>) -> Vector2<f32> {
+        Vector2::new(
+            self.x.to_float(parent_container.x),
+            self.y.to_float(parent_container.y),
+        )
+    }
+
+    pub fn to_point(&self, parent_container: Vector2<f32>) -> Point2<f32> {
+        Point2::from_coordinates(self.to_vector(parent_container))
+    }
 }

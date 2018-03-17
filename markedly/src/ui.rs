@@ -43,7 +43,7 @@ impl Ui {
 
         // Create the root component from the template
         let event_sink = EventSink::new();
-        ui.root_id = ui.load_component(&template.root, event_sink.clone(), target_size, context)?;
+        ui.root_id = ui.load_component(&template.root, event_sink.clone(), context)?;
 
         let root = ui.root_id;
         Ok((ui, Tree { root, event_sink, }))
@@ -89,7 +89,6 @@ impl Ui {
         // Make sure we found something and retrieve some basic data we need
         let parent_id = found_parent_id
             .ok_or(format!("Unable to find component with style class {}", style_class))?;
-        let size = self.get(parent_id).unwrap().attributes.size;
 
         // Prepare the scripting engine with the model data
         let default_table = ScriptTable::new();
@@ -98,7 +97,7 @@ impl Ui {
 
         // Recursively add the template
         let event_sink = EventSink::new();
-        let id = self.load_component(&template.root, event_sink.clone(), size, context)?;
+        let id = self.load_component(&template.root, event_sink.clone(), context)?;
 
         // Add the component tree we just added to the children of the component we had found
         self.get_mut(parent_id).unwrap().children.push(id);
@@ -131,20 +130,18 @@ impl Ui {
         &mut self,
         template: &ComponentTemplate,
         event_sink: EventSink,
-        parent_size: Vector2<f32>,
         context: &Context,
     ) -> Result<ComponentId, Error> {
         // Load the component itself from the template
         let mut component = Component::from_template(
-            template, event_sink.clone(), &self.style, parent_size, context,
+            template, event_sink.clone(), &self.style, context,
         )?;
-        let size = component.attributes.size;
         let id = self.next_id;
         self.next_id.0 += 1;
 
         // Also load all the children
         for child in &template.children {
-            let id = self.load_component(child, event_sink.clone(), size, context)?;
+            let id = self.load_component(child, event_sink.clone(), context)?;
             component.children.push(id);
         }
 

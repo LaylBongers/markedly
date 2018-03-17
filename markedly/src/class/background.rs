@@ -1,4 +1,4 @@
-use nalgebra::{Point2};
+use nalgebra::{Point2, Vector2};
 use lyon::math::rect;
 use lyon::tessellation as lt;
 
@@ -25,7 +25,8 @@ impl BackgroundAttributes {
     }
 
     pub fn render(
-        &self, id: ComponentId, attributes: &ComponentAttributes, renderer: &mut Renderer,
+        &self, id: ComponentId,
+        _attributes: &ComponentAttributes, computed_size: Vector2<f32>, renderer: &mut Renderer,
         hovering: bool,
     ) -> Result<(), Error> {
         let current_color = if hovering && self.color_hovering.is_some() {
@@ -36,13 +37,13 @@ impl BackgroundAttributes {
 
         if let Some(color) = current_color {
             if self.border_radius == 0.0 {
-                renderer.rectangle(id, Point2::new(0.0, 0.0), attributes.size, color)?;
+                renderer.rectangle(id, Point2::new(0.0, 0.0), computed_size, color)?;
             } else {
                 // Generate the rounded rectangle
                 let mut geometry = lt::VertexBuffers::new();
                 let options = lt::FillOptions::tolerance(0.1);
                 lt::basic_shapes::fill_rounded_rectangle(
-                    &rect(0.0, 0.0, attributes.size.x, attributes.size.y),
+                    &rect(0.0, 0.0, computed_size.x, computed_size.y),
                     &lt::basic_shapes::BorderRadii {
                         top_left: self.border_radius,
                         top_right: self.border_radius,

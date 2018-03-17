@@ -1,5 +1,7 @@
 use std::collections::{HashMap};
 
+use nalgebra::{Vector2};
+
 use render::{Renderer};
 use scripting::{ScriptRuntime};
 use template::{ComponentTemplate, Attributes};
@@ -14,7 +16,9 @@ pub trait ComponentClass {
 
     /// Renders the component.
     fn render(
-        &self, id: ComponentId, attributes: &ComponentAttributes, renderer: &mut Renderer,
+        &self, id: ComponentId,
+        attributes: &ComponentAttributes, computed_size: Vector2<f32>,
+        renderer: &mut Renderer,
     ) -> Result<(), Error>;
 
     /// Returns if this component class captures cursor events or not. Does not affect children.

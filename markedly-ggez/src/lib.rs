@@ -87,11 +87,10 @@ impl<'a> GgezRenderer<'a> {
     fn render_to_component(&mut self, id: ComponentId) -> Result<(), Error> {
         let canvas = self.cache.data.get(&id).unwrap();
         graphics::set_canvas(self.ctx, Some(canvas));
-        graphics::set_projection(self.ctx, Matrix4::new_orthographic(
-            0.0, canvas.get_image().width() as f32,
-            0.0, canvas.get_image().height() as f32,
-            -1.0, 1.0
-        ));
+        graphics::set_screen_coordinates(self.ctx, Rect::new(
+            0.0, 0.0,
+            canvas.get_image().width() as f32, canvas.get_image().height() as f32,
+        )).map_err(egtm)?;
         graphics::apply_transformations(self.ctx).map_err(egtm)?;
 
         Ok(())
@@ -101,7 +100,6 @@ impl<'a> GgezRenderer<'a> {
 impl<'a> Renderer for GgezRenderer<'a> {
     fn render_cache_to_target(&mut self, id: ComponentId) -> Result<(), Error> {
         graphics::set_canvas(self.ctx, None);
-        // TODO: Test if we can remove this line
         graphics::set_screen_coordinates(self.ctx, self.target_coordinates).map_err(egtm)?;
         graphics::apply_transformations(self.ctx).map_err(egtm)?;
 

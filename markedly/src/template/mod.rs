@@ -13,4 +13,4 @@ pub use self::attributes::{Attributes};
 pub use self::component::{ComponentTemplate};
 pub use self::style::{Style};
 pub use self::template::{Template};
-pub use self::value::{TemplateValue, Color, EventHook};
+pub use self::value::{TemplateValue, Color, EventHook, Coordinates, Coordinate};

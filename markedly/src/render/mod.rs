@@ -50,7 +50,8 @@ pub fn render<R: Renderer>(
     let root_id = ui.root_id();
 
     // Update the components' caches recursively, then render the final cache to the target
-    update_component_cache(renderer, ui, root_id)?;
+    let size = ui.target_size();
+    update_component_cache(renderer, ui, root_id, size)?;
     renderer.render_cache_to_target(root_id)?;
 
     // Mark all components all not needing updating anymore
@@ -60,20 +61,21 @@ pub fn render<R: Renderer>(
 }
 
 fn update_component_cache<R: Renderer>(
-    renderer: &mut R, ui: &Ui, component_id: ComponentId,
+    renderer: &mut R, ui: &Ui, component_id: ComponentId, parent_size: Vector2<f32>,
 ) -> Result<bool, Error> {
     let component = ui.get(component_id).unwrap();
+    let computed_size = component.compute_size(parent_size);
 
     // Make sure this component's cache is created and of the correct size
     let cache_empty = renderer.create_resize_cache(component_id, Vector2::new(
-        component.attributes.size.x.ceil() as u32,
-        component.attributes.size.y.ceil() as u32,
+        computed_size.x.ceil() as u32,
+        computed_size.y.ceil() as u32,
     ))?;
 
     // Make sure all children's caches are up-to-date
     let mut child_updated = false;
     for child_id in &component.children {
-        child_updated |= update_component_cache(renderer, ui, *child_id)?;
+        child_updated |= update_component_cache(renderer, ui, *child_id, computed_size)?;
     }
 
     // Only render if we need to
@@ -81,15 +83,13 @@ fn update_component_cache<R: Renderer>(
         renderer.clear_cache(component_id)?;
 
         // Let the component's class render itself to the component's cache
-        component.class.render(component_id, &component.attributes, renderer)?;
+        component.class.render(component_id, &component.attributes, computed_size, renderer)?;
 
         // Render all children caches in sequence to this component
-        let mut flow = ComponentFlow::new(component.attributes.size);
+        let mut flow = ComponentFlow::new(computed_size);
         for child_id in &component.children {
             let child = ui.get(*child_id).unwrap();
-            let computed_position = child.compute_position(
-                component.attributes.size, &mut flow,
-            );
+            let computed_position = child.compute_position(computed_size, &mut flow);
             renderer.render_cache(component_id, *child_id, computed_position)?;
         }
 

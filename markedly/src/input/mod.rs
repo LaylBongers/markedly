@@ -80,12 +80,13 @@ fn find_at_position(
     let component = ui.get(id).unwrap();
     let computed_position = computed_parent_position +
         component.compute_position(parent_size, parent_flow).coords;
+    let computed_size = component.compute_size(parent_size);
 
     // If the position isn't over us, it also won't be over any children, so just return none
     if position.x < computed_position.x ||
         position.y < computed_position.y ||
-        position.x > computed_position.x + component.attributes.size.x ||
-        position.y > computed_position.y + component.attributes.size.y {
+        position.x > computed_position.x + computed_size.x ||
+        position.y > computed_position.y + computed_size.y {
         return None
     }
 
@@ -100,10 +101,10 @@ fn find_at_position(
     // Go through all children, if any of them find a hit, replace the ID we found, we want to find
     // the last one that matches because it's the one rendered on top. The function will
     // recursively find the deepest matching child like this.
-    let mut flow = ComponentFlow::new(component.attributes.size);
+    let mut flow = ComponentFlow::new(computed_size);
     for child_id in &component.children {
         if let Some(id) = find_at_position(
-            position, ui, *child_id, computed_position, component.attributes.size, &mut flow,
+            position, ui, *child_id, computed_position, computed_size, &mut flow,
         ) {
             found_id = Some(id);
         }

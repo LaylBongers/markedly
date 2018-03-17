@@ -6,11 +6,11 @@ container {
         docking: ("middle", "middle"),
         color: (255, 255, 255),
         size: (412.0, 200.0),
-        padding: 6.0,
         border-radius: 3.0,
     }
         button {
             size: (400.0, 20.0),
+            margin: 6.0,
 
             text: "Markedly - A Dynamic Template Based UI Engine",
             text-color: (255, 150, 78),
@@ -21,6 +21,7 @@ container {
         }
         button {
             size: (400.0, 100.0),
+            margin: 6.0,
 
             text: "This is a kitchen sink example of Markedly",
             text-color: (41, 43, 44),

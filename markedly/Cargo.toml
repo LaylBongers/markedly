@@ -6,7 +6,7 @@ authors = ["Layl <LaylConway@users.noreply.github.com>"]
 [dependencies]
 pest = "1"
 pest_derive = "1"
-nalgebra = "0.13"
+nalgebra = "0.14"
 palette = "0.3"
 metrohash = "1"
 lyon = "0.10"

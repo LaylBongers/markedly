@@ -1,4 +1,4 @@
-use nalgebra::{Point2};
+use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory, BackgroundAttributes};
 use render::{Renderer};
@@ -33,14 +33,15 @@ impl ComponentClass for ButtonClass {
     }
 
     fn render(
-        &self, id: ComponentId, attributes: &ComponentAttributes, renderer: &mut Renderer,
+        &self, id: ComponentId,
+        attributes: &ComponentAttributes, computed_size: Vector2<f32>, renderer: &mut Renderer,
     ) -> Result<(), Error> {
-        self.background.render(id, attributes, renderer, self.hovering)?;
+        self.background.render(id, attributes, computed_size, renderer, self.hovering)?;
 
         if let Some(ref text) = self.attributes.text {
             renderer.text(
                 id, &text, self.attributes.text_font.as_ref(), self.attributes.text_size,
-                Point2::new(0.0, 0.0), attributes.size, self.attributes.text_color,
+                Point2::new(0.0, 0.0), computed_size, self.attributes.text_color,
             )?;
         }
 

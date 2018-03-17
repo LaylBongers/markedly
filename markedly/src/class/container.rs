@@ -1,3 +1,5 @@
+use nalgebra::{Vector2};
+
 use class::{ComponentClass, ComponentClassFactory, BackgroundAttributes};
 use render::{Renderer};
 use scripting::{ScriptRuntime};
@@ -26,9 +28,10 @@ impl ComponentClass for ContainerClass {
     }
 
     fn render(
-        &self, id: ComponentId, attributes: &ComponentAttributes, renderer: &mut Renderer,
+        &self, id: ComponentId,
+        attributes: &ComponentAttributes, computed_size: Vector2<f32>, renderer: &mut Renderer,
     ) -> Result<(), Error> {
-        self.background.render(id, attributes, renderer, false)?;
+        self.background.render(id, attributes, computed_size, renderer, false)?;
 
         Ok(())
     }

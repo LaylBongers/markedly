@@ -2,7 +2,7 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass};
 use scripting::{ScriptRuntime};
-use template::{ComponentTemplate, Style, TemplateValue, Attributes};
+use template::{ComponentTemplate, Style, TemplateValue, Attributes, Coordinates};
 use {ComponentId, Error, Context, EventSink};
 
 /// A component generated from a template, active in a UI.
@@ -23,14 +23,13 @@ impl Component {
         template: &ComponentTemplate,
         event_sink: EventSink,
         style: &Style,
-        parent_size: Vector2<f32>,
         context: &Context,
     ) -> Result<Self, Error> {
         let runtime = &context.runtime;
         let attributes = Attributes::resolve(template, style, context)?;
 
         let class = context.classes.create(template, &attributes, runtime)?;
-        let component_attributes = ComponentAttributes::load(parent_size, &attributes, runtime)?;
+        let component_attributes = ComponentAttributes::load(&attributes, runtime)?;
 
         Ok(Component {
             class,
@@ -57,53 +56,63 @@ impl Component {
         Ok(())
     }
 
+    pub(crate) fn compute_size(&self, parent_size: Vector2<f32>) -> Vector2<f32> {
+        self.attributes.size
+            .map(|v| v.to_vector(parent_size))
+            .unwrap_or(parent_size)
+    }
+
     pub(crate) fn compute_position(
         &self, parent_size: Vector2<f32>, parent_flow: &mut ComponentFlow
     ) -> Point2<f32> {
+        let size = self.compute_size(parent_size);
+
         if let Some(position) = self.attributes.position {
+            let position = position.to_point(parent_size);
+
             // If we have a position, we need to use that
             let x = match self.attributes.docking.0 {
                 Docking::Start =>
                     position.x,
                 Docking::Middle =>
-                    position.x + (parent_size.x - self.attributes.size.x)*0.5,
+                    position.x + (parent_size.x - size.x)*0.5,
                 Docking::End =>
-                    position.x + parent_size.x - self.attributes.size.x,
+                    position.x + parent_size.x - size.x,
             };
             let y = match self.attributes.docking.1 {
                 Docking::Start =>
                     position.y,
                 Docking::Middle =>
-                    position.y + (parent_size.y - self.attributes.size.y)*0.5,
+                    position.y + (parent_size.y - size.y)*0.5,
                 Docking::End =>
-                    position.y + parent_size.y - self.attributes.size.y,
+                    position.y + parent_size.y - size.y,
             };
 
             Point2::new(x, y)
         } else {
             // If we don't have a position, we need to automatically calculate it
-            parent_flow.position(self.attributes.size)
+            parent_flow.position(size)
         }
     }
 }
 
 /// Core attributes all components share.
 pub struct ComponentAttributes {
-    pub position: Option<Point2<f32>>,
-    pub size: Vector2<f32>,
+    pub position: Option<Coordinates>,
+    pub size: Option<Coordinates>,
     pub docking: (Docking, Docking),
 }
 
 impl ComponentAttributes {
     pub fn load(
-        parent_size: Vector2<f32>, attributes: &Attributes, runtime: &ScriptRuntime
+        attributes: &Attributes, runtime: &ScriptRuntime
     ) -> Result<Self, Error> {
         Ok(ComponentAttributes {
             position: attributes.attribute_optional(
-                "position", |v| v.as_point(parent_size, runtime),
+                "position", |v| v.as_coordinates(runtime),
             )?,
-            size: attributes.attribute(
-                "size", |v| v.as_vector(parent_size, runtime), parent_size,
+            size: attributes.attribute_optional(
+                "size", |v| v.as_coordinates(runtime),
             )?,
             docking: attributes.attribute(
                 "docking", |v| Docking::from_value(v, runtime), (Docking::Start, Docking::Start),
