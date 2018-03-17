@@ -28,7 +28,7 @@ impl Input {
     ) {
         let mut flow = ComponentFlow::new(ui.target_size());
         let new_hovering = find_at_position(
-            position, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0), &mut flow,
+            position, ui, ui.root_id(), Point2::new(0.0, 0.0), ui.target_size(), &mut flow,
         );
 
         if let Some(new_hovering) = new_hovering {
@@ -64,7 +64,7 @@ impl Input {
     ) {
         let mut flow = ComponentFlow::new(ui.target_size());
         if let Some(component_id) = find_at_position(
-            position, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0), &mut flow,
+            position, ui, ui.root_id(), Point2::new(0.0, 0.0), ui.target_size(), &mut flow,
         ) {
             let component = ui.get_mut(component_id).unwrap();
             component.class.pressed_event(&mut component.event_sink);

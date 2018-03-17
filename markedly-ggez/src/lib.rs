@@ -8,7 +8,7 @@ use std::path::{PathBuf};
 use nalgebra::{Point2, Vector2};
 use metrohash::{MetroHashMap};
 use ggez::conf::{NumSamples};
-use ggez::graphics::{self, DrawMode, Rect, Font, Text, Canvas, Matrix4, Mesh};
+use ggez::graphics::{self, DrawMode, Rect, Font, Text, Canvas, Mesh};
 use ggez::{Context, GameError};
 
 use markedly::render::{Renderer};
