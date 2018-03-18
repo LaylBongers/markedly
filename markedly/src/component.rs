@@ -1,19 +1,21 @@
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass};
+use render::{Renderer};
 use scripting::{ScriptRuntime};
 use template::{ComponentTemplate, Style, TemplateValue, Attributes, Coordinates};
 use {ComponentId, Error, Context, EventSink};
 
 /// A component generated from a template, active in a UI.
 pub struct Component {
-    pub(crate) class: Box<ComponentClass>,
-    pub(crate) style_class: Option<String>,
-    pub(crate) event_sink: EventSink,
-    pub(crate) needs_render_update: bool,
+    class: Box<ComponentClass>,
+    style_class: Option<String>,
 
-    pub(crate) children: Vec<ComponentId>,
-    pub(crate) attributes: ComponentAttributes,
+    event_sink: EventSink,
+    needs_rendering: bool,
+
+    children: Vec<ComponentId>,
+    attributes: ComponentAttributes,
 
     template: ComponentTemplate,
 }
@@ -34,8 +36,9 @@ impl Component {
         Ok(Component {
             class,
             style_class: template.style_class.clone(),
+
             event_sink,
-            needs_render_update: true,
+            needs_rendering: true,
 
             children: Vec::new(),
             attributes: component_attributes,
@@ -45,13 +48,59 @@ impl Component {
         })
     }
 
+    pub fn class(&self) -> &ComponentClass {
+        self.class.as_ref()
+    }
+
+    pub fn style_class(&self) -> Option<&String> {
+        self.style_class.as_ref()
+    }
+
+    pub fn needs_rendering(&self) -> bool {
+        self.needs_rendering
+    }
+
+    pub(crate) fn mark_rendered(&mut self) {
+        self.needs_rendering = false;
+    }
+
+    pub fn children(&self) -> &Vec<ComponentId> {
+        &self.children
+    }
+
+    pub(crate) fn add_child(&mut self, id: ComponentId) {
+        self.children.push(id);
+    }
+
+    pub fn attributes(&self) -> &ComponentAttributes {
+        &self.attributes
+    }
+
+    pub(crate) fn render(
+        &self, id: ComponentId, computed_size: Vector2<f32>, renderer: &mut Renderer,
+    ) -> Result<(), Error> {
+        self.class.render(id, &self.attributes, computed_size, renderer)
+    }
+
+    pub(crate) fn raise_hover_start_event(&mut self) {
+        self.needs_rendering |= self.class.hover_start_event(&mut self.event_sink);
+    }
+
+    pub(crate) fn raise_hover_end_event(&mut self) {
+        self.needs_rendering |= self.class.hover_end_event(&mut self.event_sink);
+    }
+
+    pub(crate) fn raise_pressed_event(&mut self) {
+        self.class.pressed_event(&mut self.event_sink);
+    }
+
     pub(crate) fn update_attributes(
         &mut self, style: &Style, context: &Context
     ) -> Result<(), Error> {
         let runtime = &context.runtime;
         let attributes = Attributes::resolve(&self.template, style, context)?;
         self.class.update_attributes(&attributes, runtime)?;
-        self.needs_render_update = true;
+        self.needs_rendering = true;
 
         Ok(())
     }

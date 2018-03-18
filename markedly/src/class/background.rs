@@ -37,7 +37,13 @@ impl BackgroundAttributes {
 
         if let Some(color) = current_color {
             if self.border_radius == 0.0 {
-                renderer.rectangle(id, Point2::new(0.0, 0.0), computed_size, color)?;
+                // Simple rectangle fast path
+                renderer.vertices(id, &[
+                    Point2::new(0.0, 0.0),
+                    Point2::new(0.0, computed_size.y),
+                    Point2::new(computed_size.x, computed_size.y),
+                    Point2::new(computed_size.x, 0.0),
+                ], &[0, 1, 3, 2, 3, 1], color)?;
             } else {
                 // Generate the rounded rectangle
                 let mut geometry = lt::VertexBuffers::new();

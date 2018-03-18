@@ -20,12 +20,6 @@ pub trait Renderer {
         source_id: ComponentId, position: Point2<f32>
     ) -> Result<(), Error>;
 
-    /// Renders a rectangle to the component's cache.
-    fn rectangle(
-        &mut self, id: ComponentId,
-        position: Point2<f32>, size: Vector2<f32>, color: Color,
-    ) -> Result<(), Error>;
-
     /// Renders text centered in an area to the component's cache.
     /// Font is a string identifier that should be resolved by the renderer's font cache.
     fn text(
@@ -64,7 +58,7 @@ fn update_component_cache<R: Renderer>(
     renderer: &mut R, ui: &Ui, component_id: ComponentId, parent_size: Vector2<f32>,
 ) -> Result<bool, Error> {
     let component = ui.get(component_id).unwrap();
-    let computed_size = component.attributes.compute_size(parent_size);
+    let computed_size = component.attributes().compute_size(parent_size);
 
     // Make sure this component's cache is created and of the correct size
     let cache_empty = renderer.create_resize_cache(component_id, Vector2::new(
@@ -74,22 +68,22 @@ fn update_component_cache<R: Renderer>(
 
     // Make sure all children's caches are up-to-date
     let mut child_updated = false;
-    for child_id in &component.children {
+    for child_id in component.children() {
         child_updated |= update_component_cache(renderer, ui, *child_id, computed_size)?;
     }
 
     // Only render if we need to
-    if cache_empty || child_updated || component.needs_render_update {
+    if cache_empty || child_updated || component.needs_rendering() {
         renderer.clear_cache(component_id)?;
 
         // Let the component's class render itself to the component's cache
-        component.class.render(component_id, &component.attributes, computed_size, renderer)?;
+        component.render(component_id, computed_size, renderer)?;
 
         // Render all children caches in sequence to this component
         let mut flow = ComponentFlow::new(computed_size);
-        for child_id in &component.children {
+        for child_id in component.children() {
             let child = ui.get(*child_id).unwrap();
-            let computed_position = child.attributes.compute_position(computed_size, &mut flow);
+            let computed_position = child.attributes().compute_position(computed_size, &mut flow);
             renderer.render_cache(component_id, *child_id, computed_position)?;
         }
 

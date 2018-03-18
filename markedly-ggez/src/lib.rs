@@ -8,7 +8,7 @@ use std::path::{PathBuf};
 use nalgebra::{Point2, Vector2};
 use metrohash::{MetroHashMap};
 use ggez::conf::{NumSamples};
-use ggez::graphics::{self, DrawMode, Rect, Font, Text, Canvas, Mesh};
+use ggez::graphics::{self, Rect, Font, Text, Canvas, Mesh};
 use ggez::{Context, GameError};
 
 use markedly::render::{Renderer};
@@ -149,22 +149,6 @@ impl<'a> Renderer for GgezRenderer<'a> {
             position.x.round(),
             position.y.round(),
         ), 0.0).map_err(egtm)?;
-
-        Ok(())
-    }
-
-    fn rectangle(
-        &mut self, id: ComponentId,
-        position: Point2<f32>, size: Vector2<f32>, color: Color,
-    ) -> Result<(), Error> {
-        self.render_to_component(id)?;
-
-        graphics::set_color(self.ctx, color_convert(color)).map_err(egtm)?;
-
-        graphics::rectangle(self.ctx, DrawMode::Fill, Rect::new(
-            position.x, position.y,
-            size.x, size.y,
-        )).map_err(egtm)?;
 
         Ok(())
     }

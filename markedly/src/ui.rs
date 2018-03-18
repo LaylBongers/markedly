@@ -79,7 +79,7 @@ impl Ui {
         // Find the first component that has a style class matching what we were asked for
         let mut found_parent_id = None;
         for (key, component) in &self.components {
-            if let Some(ref component_style_class) = component.style_class {
+            if let Some(component_style_class) = component.style_class() {
                 if component_style_class == style_class {
                     found_parent_id = Some(*key);
                 }
@@ -100,7 +100,7 @@ impl Ui {
         let id = self.load_component(&template.root, event_sink.clone(), context)?;
 
         // Add the component tree we just added to the children of the component we had found
-        self.get_mut(parent_id).unwrap().children.push(id);
+        self.get_mut(parent_id).unwrap().add_child(id);
 
         Ok(Tree { root: id, event_sink, })
     }
@@ -122,7 +122,7 @@ impl Ui {
 
     pub(crate) fn mark_all_rendered(&mut self) {
         for (_key, value) in &mut self.components {
-            value.needs_render_update = false;
+            value.mark_rendered();
         }
     }
 
@@ -142,7 +142,7 @@ impl Ui {
         // Also load all the children
         for child in &template.children {
             let id = self.load_component(child, event_sink.clone(), context)?;
-            component.children.push(id);
+            component.add_child(id);
         }
 
         // Add the component itself
@@ -156,8 +156,8 @@ impl Ui {
         tree_roots: &MetroHashSet<ComponentId>,
         style: &Style, context: &Context,
     ) -> Result<(), Error> {
-        for child_i in 0..components.get(&key).unwrap().children.len() {
-            let child_id = components.get(&key).unwrap().children[child_i];
+        for child_i in 0..components.get(&key).unwrap().children().len() {
+            let child_id = components.get(&key).unwrap().children()[child_i];
 
             // Do not go deeper if we're at an inserted template's root
             if !tree_roots.contains(&child_id) {
