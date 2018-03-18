@@ -64,7 +64,7 @@ fn update_component_cache<R: Renderer>(
     renderer: &mut R, ui: &Ui, component_id: ComponentId, parent_size: Vector2<f32>,
 ) -> Result<bool, Error> {
     let component = ui.get(component_id).unwrap();
-    let computed_size = component.compute_size(parent_size);
+    let computed_size = component.attributes.compute_size(parent_size);
 
     // Make sure this component's cache is created and of the correct size
     let cache_empty = renderer.create_resize_cache(component_id, Vector2::new(
@@ -89,7 +89,7 @@ fn update_component_cache<R: Renderer>(
         let mut flow = ComponentFlow::new(computed_size);
         for child_id in &component.children {
             let child = ui.get(*child_id).unwrap();
-            let computed_position = child.compute_position(computed_size, &mut flow);
+            let computed_position = child.attributes.compute_position(computed_size, &mut flow);
             renderer.render_cache(component_id, *child_id, computed_position)?;
         }
 

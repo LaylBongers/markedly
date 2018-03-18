@@ -79,8 +79,8 @@ fn find_at_position(
 ) -> Option<ComponentId> {
     let component = ui.get(id).unwrap();
     let computed_position = computed_parent_position +
-        component.compute_position(parent_size, parent_flow).coords;
-    let computed_size = component.compute_size(parent_size);
+        component.attributes.compute_position(parent_size, parent_flow).coords;
+    let computed_size = component.attributes.compute_size(parent_size);
 
     // If the position isn't over us, it also won't be over any children, so just return none
     if position.x < computed_position.x ||
