@@ -54,17 +54,17 @@ impl Ui {
     }
 
     /// Gets a component from its ID.
-    pub fn get(&self, id: ComponentId) -> Option<&Component> {
+    pub(crate) fn get(&self, id: ComponentId) -> Option<&Component> {
         self.components.get(&id)
     }
 
     /// Gets a component as mutable from its ID.
-    pub fn get_mut(&mut self, id: ComponentId) -> Option<&mut Component> {
+    pub(crate) fn get_mut(&mut self, id: ComponentId) -> Option<&mut Component> {
         self.components.get_mut(&id)
     }
 
     /// Gets the root component's ID.
-    pub fn root_id(&self) -> ComponentId {
+    pub(crate) fn root_id(&self) -> ComponentId {
         self.root_id
     }
 
